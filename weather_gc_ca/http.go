@@ -10,21 +10,22 @@ import (
 // SearchHandler processes a standard search request and returns a JSON response
 // corresponding to []StationMetadata
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
-	latS := r.FormValue("lat")
+	q := r.URL.Query()
+	latS := q.Get("lat")
 	lat, err := strconv.ParseFloat(latS, 64)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to parse lat: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
-	lngS := r.FormValue("lng")
+	lngS := q.Get("lng")
 	lng, err := strconv.ParseFloat(lngS, 64)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to parse lng: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
-	maxS := r.FormValue("max")
+	maxS := q.Get("max")
 	max, err := strconv.ParseInt(maxS, 10, 16)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to parse max: %s", err.Error()), http.StatusBadRequest)
