@@ -77,6 +77,11 @@ OR
 								Usage:    "Longitude of the coordinate pair",
 								Required: true,
 							},
+							&cli.IntFlag{
+								Name:    "interval",
+								Aliases: []string{"int", "i"},
+								Usage:   "The desired interval of data: hourly(0), daily(1), monthly(2)",
+							},
 						},
 						Action: SearchByCoor,
 					},
@@ -166,7 +171,8 @@ func SearchByCoor(c *cli.Context) error {
 	lat := c.Float64("latitude")
 	lng := c.Float64("longitude")
 	max := c.Int("max-count")
-	stations := climatedata.StationInventory.Find(lat, lng, max)
+	interval := climatedata.Interval(c.Int("interval"))
+	stations := climatedata.StationInventory.FindWithInterval(lat, lng, max, interval)
 
 	sort := c.String("sort")
 	if sort == "" {
