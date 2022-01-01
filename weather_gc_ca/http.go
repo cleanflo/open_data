@@ -32,7 +32,17 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s := StationInventory.Find(lat, lng, int(max))
+	interval := Daily
+	intervalS := q.Get("interval")
+	if intervalS != "" {
+		intParsed, err := strconv.ParseInt(intervalS, 10, 16)
+		if err != nil {
+			fmt.Println("failed to parse interval:", err)
+		}
+		interval = Interval(intParsed)
+	}
+
+	s := StationInventory.FindWithInterval(lat, lng, int(max), interval)
 	if s == nil || len(s) == 0 {
 		http.Error(w, "No stations found", http.StatusNotFound)
 		return

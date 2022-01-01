@@ -34,42 +34,131 @@ func (r RawStations) Map(f func(a *StationMetadata)) {
 	}
 }
 
+type distanceMap struct {
+	list     map[float64]StationMetadata
+	farthest float64
+}
+
+func (m *distanceMap) add(d float64, s StationMetadata, max int) {
+	// fill map with first n[max] stations on list
+	if len(m.list) < max {
+		m.list[d] = s
+		if d > m.farthest {
+			m.farthest = d
+		}
+		return
+	}
+
+	// if this station is closer than the farthest station in the map
+	if d < m.farthest {
+		// remove farthest station from map
+		delete(m.list, m.farthest)
+		// add this station to map
+		m.list[d] = s
+		m.farthest = 0.0
+		// find the new farthest station in the map
+		for distance := range m.list {
+			if distance > m.farthest {
+				m.farthest = distance
+			}
+		}
+	}
+}
+
 func (r RawStations) Find(lat, lng float64, max int) (s RawStations) {
 	// get a list of stations sorted by distance
-	m := make(map[float64]StationMetadata, max)
-	farthest := 0.0
+	m := distanceMap{list: make(map[float64]StationMetadata, max)}
 
 	// TODO: figure out how to start excluding stations early
 	for _, a := range r {
 		d := a.Distance(lat, lng)
-		// fill map with first n[max] stations on list
-		if len(m) < max {
-			m[d] = a
-			if d > farthest {
-				farthest = d
-			}
-			continue
-		}
+		m.add(d, a, max)
+		// // fill map with first n[max] stations on list
+		// if len(m) < max {
+		// 	m[d] = a
+		// 	if d > farthest {
+		// 		farthest = d
+		// 	}
+		// 	continue
+		// }
 
-		// if this station is closer than the farthest station in the map
-		if d < farthest {
-			// remove farthest station from map
-			delete(m, farthest)
-			// add this station to map
-			m[d] = a
-			farthest = 0.0
-			// find the new farthest station in the map
-			for distance := range m {
-				if distance > farthest {
-					farthest = distance
-				}
-			}
-		}
+		// // if this station is closer than the farthest station in the map
+		// if d < farthest {
+		// 	// remove farthest station from map
+		// 	delete(m, farthest)
+		// 	// add this station to map
+		// 	m[d] = a
+		// 	farthest = 0.0
+		// 	// find the new farthest station in the map
+		// 	for distance := range m {
+		// 		if distance > farthest {
+		// 			farthest = distance
+		// 		}
+		// 	}
+		// }
 	}
 
 	s = nil
 	// convert map to slice
-	for _, v := range m {
+	for _, v := range m.list {
+		s = append(s, v)
+	}
+
+	return s
+}
+
+func (r RawStations) FindWithInterval(lat, lng float64, max int, interval Interval) (s RawStations) {
+	// get a list of stations sorted by distance
+	m := &distanceMap{list: make(map[float64]StationMetadata, max)}
+	for _, a := range r {
+		switch interval {
+		case Hourly:
+			if a.HourlyFirstYear == 0 || a.HourlyLastYear == 0 {
+				continue
+			}
+		case Daily:
+			if a.DailyFirstYear == 0 || a.DailyLastYear == 0 {
+				continue
+			}
+		case Monthly:
+			if a.MonthlyFirstYear == 0 || a.MonthlyLastYear == 0 {
+				continue
+			}
+		case Almanac:
+			if a.FirstYear == 0 || a.LastYear == 0 {
+				continue
+			}
+		}
+		d := a.Distance(lat, lng)
+		m.add(d, a, max)
+		// fill map with first n[max] stations on list
+		// if len(m) < max {
+		// 	m[d] = a
+		// 	if d > farthest {
+		// 		farthest = d
+		// 	}
+		// 	continue
+		// }
+
+		// // if this station is closer than the farthest station in the map
+		// if d < farthest {
+		// 	// remove farthest station from map
+		// 	delete(m, farthest)
+		// 	// add this station to map
+		// 	m[d] = a
+		// 	farthest = 0.0
+		// 	// find the new farthest station in the map
+		// 	for distance := range m {
+		// 		if distance > farthest {
+		// 			farthest = distance
+		// 		}
+		// 	}
+		// }
+	}
+
+	s = nil
+	// convert map to slice
+	for _, v := range m.list {
 		s = append(s, v)
 	}
 
