@@ -17,13 +17,14 @@ type ClimateDataXML struct {
 }
 
 type StationDataXML interface {
-	Timeframe() (Timeframe, Timeframe)
-	Find(Timeframe) (IntervalBaseXML, bool)
-	Sort()
-	First() IntervalBaseXML
-	Last() IntervalBaseXML
 	Append(StationDataXML)
 	csv() [][]string
+	Empty() bool
+	Find(Timeframe) (IntervalBaseXML, bool)
+	First() IntervalBaseXML
+	Last() IntervalBaseXML
+	Sort()
+	Timeframe() (Timeframe, Timeframe)
 }
 
 type IntervalBaseXML interface {
@@ -58,6 +59,15 @@ func (m MonthlyBaseXML) Timeframe() Timeframe {
 }
 
 type MonthlyDataXML []MonthlyBaseXML
+
+func (m *MonthlyDataXML) Append(data StationDataXML) {
+	if v, ok := data.(*MonthlyDataXML); ok {
+		dm := (*m)
+		dv := (*v)
+		dm = append(dm, dv...)
+		*m = dm
+	}
+}
 
 func (m *MonthlyDataXML) csv() [][]string {
 	s := [][]string{}
@@ -97,10 +107,8 @@ func (m *MonthlyDataXML) csv() [][]string {
 	return s
 }
 
-func (m *MonthlyDataXML) Timeframe() (start, end Timeframe) {
-	m.Sort()
-	dm := (*m)
-	return dm[0].Timeframe(), dm[len(dm)-1].Timeframe()
+func (m *MonthlyDataXML) Empty() bool {
+	return (len(*m) == 0)
 }
 
 func (m *MonthlyDataXML) Find(t Timeframe) (IntervalBaseXML, bool) {
@@ -113,13 +121,6 @@ func (m *MonthlyDataXML) Find(t Timeframe) (IntervalBaseXML, bool) {
 	return nil, false
 }
 
-func (m *MonthlyDataXML) Sort() {
-	md := (*m)
-	sort.Slice(md, func(i, j int) bool {
-		return md[i].Timeframe().Time.Before(md[j].Timeframe().Time)
-	})
-}
-
 func (m *MonthlyDataXML) First() IntervalBaseXML {
 	return (*m)[0]
 }
@@ -128,14 +129,17 @@ func (m *MonthlyDataXML) Last() IntervalBaseXML {
 	dm := (*m)
 	return dm[len(dm)-1]
 }
+func (m *MonthlyDataXML) Sort() {
+	md := (*m)
+	sort.Slice(md, func(i, j int) bool {
+		return md[i].Timeframe().Time.Before(md[j].Timeframe().Time)
+	})
+}
 
-func (m *MonthlyDataXML) Append(data StationDataXML) {
-	if v, ok := data.(*MonthlyDataXML); ok {
-		dm := (*m)
-		dv := (*v)
-		dm = append(dm, dv...)
-		*m = dm
-	}
+func (m *MonthlyDataXML) Timeframe() (start, end Timeframe) {
+	m.Sort()
+	dm := (*m)
+	return dm[0].Timeframe(), dm[len(dm)-1].Timeframe()
 }
 
 type DailyBaseXML struct {
@@ -166,6 +170,15 @@ func (d DailyBaseXML) Timeframe() Timeframe {
 }
 
 type DailyDataXML []DailyBaseXML
+
+func (d *DailyDataXML) Append(data StationDataXML) {
+	if v, ok := data.(*DailyDataXML); ok {
+		dd := (*d)
+		dv := (*v)
+		dd = append(dd, dv...)
+		*d = dd
+	}
+}
 
 func (d *DailyDataXML) csv() [][]string {
 	s := [][]string{}
@@ -206,10 +219,8 @@ func (d *DailyDataXML) csv() [][]string {
 	return s
 }
 
-func (d *DailyDataXML) Timeframe() (start, end Timeframe) {
-	d.Sort()
-	dd := (*d)
-	return dd[0].Timeframe(), dd[len(dd)-1].Timeframe()
+func (d *DailyDataXML) Empty() bool {
+	return (len(*d) == 0)
 }
 
 func (d *DailyDataXML) Find(t Timeframe) (IntervalBaseXML, bool) {
@@ -221,14 +232,6 @@ func (d *DailyDataXML) Find(t Timeframe) (IntervalBaseXML, bool) {
 	}
 	return nil, false
 }
-
-func (d *DailyDataXML) Sort() {
-	dd := (*d)
-	sort.Slice(dd, func(i, j int) bool {
-		return dd[i].Timeframe().Time.Before(dd[j].Timeframe().Time)
-	})
-}
-
 func (d *DailyDataXML) First() IntervalBaseXML {
 	return (*d)[0]
 }
@@ -241,13 +244,17 @@ func (d *DailyDataXML) Last() IntervalBaseXML {
 	return dd[len(dd)-1]
 }
 
-func (d *DailyDataXML) Append(data StationDataXML) {
-	if v, ok := data.(*DailyDataXML); ok {
-		dd := (*d)
-		dv := (*v)
-		dd = append(dd, dv...)
-		*d = dd
-	}
+func (d *DailyDataXML) Sort() {
+	dd := (*d)
+	sort.Slice(dd, func(i, j int) bool {
+		return dd[i].Timeframe().Time.Before(dd[j].Timeframe().Time)
+	})
+}
+
+func (d *DailyDataXML) Timeframe() (start, end Timeframe) {
+	d.Sort()
+	dd := (*d)
+	return dd[0].Timeframe(), dd[len(dd)-1].Timeframe()
 }
 
 type HourlyBaseXML struct {
@@ -279,6 +286,15 @@ func (h HourlyBaseXML) Timeframe() Timeframe {
 }
 
 type HourlyDataXML []HourlyBaseXML
+
+func (h *HourlyDataXML) Append(data StationDataXML) {
+	if v, ok := data.(*HourlyDataXML); ok {
+		hd := (*h)
+		dv := (*v)
+		hd = append(hd, dv...)
+		*h = hd
+	}
+}
 
 func (h *HourlyDataXML) csv() [][]string {
 	s := [][]string{}
@@ -323,10 +339,8 @@ func (h *HourlyDataXML) csv() [][]string {
 	return s
 }
 
-func (h *HourlyDataXML) Timeframe() (start, end Timeframe) {
-	h.Sort()
-	hd := (*h)
-	return hd[0].Timeframe(), hd[len(hd)-1].Timeframe()
+func (h *HourlyDataXML) Empty() bool {
+	return (len(*h) == 0)
 }
 
 func (h *HourlyDataXML) Find(t Timeframe) (IntervalBaseXML, bool) {
@@ -339,13 +353,6 @@ func (h *HourlyDataXML) Find(t Timeframe) (IntervalBaseXML, bool) {
 	return nil, false
 }
 
-func (h *HourlyDataXML) Sort() {
-	hd := (*h)
-	sort.Slice(hd, func(i, j int) bool {
-		return hd[i].Timeframe().Time.Before(hd[j].Timeframe().Time)
-	})
-}
-
 func (h *HourlyDataXML) First() IntervalBaseXML {
 	return (*h)[0]
 }
@@ -355,13 +362,17 @@ func (h *HourlyDataXML) Last() IntervalBaseXML {
 	return hd[len(hd)-1]
 }
 
-func (h *HourlyDataXML) Append(data StationDataXML) {
-	if v, ok := data.(*HourlyDataXML); ok {
-		hd := (*h)
-		dv := (*v)
-		hd = append(hd, dv...)
-		*h = hd
-	}
+func (h *HourlyDataXML) Sort() {
+	hd := (*h)
+	sort.Slice(hd, func(i, j int) bool {
+		return hd[i].Timeframe().Time.Before(hd[j].Timeframe().Time)
+	})
+}
+
+func (h *HourlyDataXML) Timeframe() (start, end Timeframe) {
+	h.Sort()
+	hd := (*h)
+	return hd[0].Timeframe(), hd[len(hd)-1].Timeframe()
 }
 
 type StationInfoXML struct {
