@@ -42,6 +42,11 @@ OR
 						Aliases: []string{"s"},
 						Usage:   "sort by field: distance, name, hourly, daily, monthly",
 					},
+					&cli.IntFlag{
+						Name:    "interval",
+						Aliases: []string{"int", "i"},
+						Usage:   "The desired interval of data: hourly(0), daily(1), monthly(2)",
+					},
 				},
 				Subcommands: []*cli.Command{
 					{
@@ -73,14 +78,9 @@ OR
 							},
 							&cli.Float64Flag{
 								Name:     "longitude",
-								Aliases:  []string{"lon"},
+								Aliases:  []string{"lon", "lng"},
 								Usage:    "Longitude of the coordinate pair",
 								Required: true,
-							},
-							&cli.IntFlag{
-								Name:    "interval",
-								Aliases: []string{"int", "i"},
-								Usage:   "The desired interval of data: hourly(0), daily(1), monthly(2)",
 							},
 						},
 						Action: SearchByCoor,

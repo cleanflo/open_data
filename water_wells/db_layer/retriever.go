@@ -39,8 +39,6 @@ func (R *Retreiver) Session() (*gorm.DB, error) {
 		Scheme:   "sqlserver",
 		User:     url.UserPassword(R.user, R.password),
 		Host:     fmt.Sprintf("%s:%d", R.host, R.port),
-		// User:     url.UserPassword("sa", "9a84fjalwnr89w0j4$"),
-		// Host:     fmt.Sprintf("%s:%d", "well-data", 1433),
 		RawQuery: query.Encode(),
 	}
 
@@ -64,10 +62,10 @@ type Retreiver struct {
 
 	ResponseChunks map[int]int // map of query size to optimum page count for this DB
 
-	user string
+	user     string
 	password string
-	host string
-	port int
+	host     string
+	port     int
 }
 
 func (R *Retreiver) User(u string) *Retreiver {

@@ -55,3 +55,7 @@ func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+
+}

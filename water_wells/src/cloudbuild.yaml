@@ -1,0 +1,39 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args: ['gsutil', 'cp', 'gs://cfwt-public-datasets/well-data/data.tar.gz', 'data.tar.gz']
+    id: 'downloadData'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '--tag=gcr.io/$PROJECT_ID/well-data/all-data-mssql:latest', '--target=all-data', '.']
+    id: 'allData'
+    waitFor: ['downloadData']
+  
+  # - name: 'gcr.io/cloud-builders/docker'
+  #   args: ['build', '--tag=gcr.io/$PROJECT_ID/well-data/alberta-mssql:latest', '--target=alberta', '.']
+  #   waitFor: ['downloadData', 'allData']
+
+  # - name: 'gcr.io/cloud-builders/docker'
+  #   args: ['build', '--tag=gcr.io/$PROJECT_ID/well-data/british-columbia-mssql:latest', '--target=british-columbia', '.']
+  #   waitFor: ['downloadData', 'allData']
+
+  # - name: 'gcr.io/cloud-builders/docker'
+  #   args: ['build', '--tag=gcr.io/$PROJECT_ID/well-data/nova-scotia-mssql:latest', '--target=nova-scotia', '.']
+  #   waitFor: ['downloadData', 'allData']
+
+  # - name: 'gcr.io/cloud-builders/docker'
+  #   args: ['build', '--tag=gcr.io/$PROJECT_ID/well-data/ontario-mssql:latest', '--target=ontario', '.']
+  #   waitFor: ['downloadData', 'allData']
+
+  # - name: 'gcr.io/cloud-builders/docker'
+  #   args: ['build', '--tag=gcr.io/$PROJECT_ID/well-data/saskatchewan-mssql:latest', '--target=saskatchewan', '.']
+  #   waitFor: ['downloadData', 'allData']
+  
+images:
+  - 'gcr.io/$PROJECT_ID/well-data/all-data-mssql:latest'
+  # - 'gcr.io/$PROJECT_ID/well-data/alberta-mssql:latest'
+  # - 'gcr.io/$PROJECT_ID/well-data/british-columbia-mssql:latest'
+  # - 'gcr.io/$PROJECT_ID/well-data/nova-scotia-mssql:latest'
+  # - 'gcr.io/$PROJECT_ID/well-data/ontario-mssql:latest'
+  # - 'gcr.io/$PROJECT_ID/well-data/saskatchewan-mssql:latest'
+
+timeout: "75m"

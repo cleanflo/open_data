@@ -30,20 +30,32 @@ type JoinStatement struct {
 	Select  string
 }
 
+func capitalize(s string) string {
+	if len(s) < 2 {
+		return s
+	}
+	return strings.ToUpper(s[0:1]) + strings.ToLower(s[1:])
+}
+
 func (j JoinStatement) CorrelationName() string {
 	return fmt.Sprintf("%s%s%s%s",
 		strings.ToLower(j.Left.Name),
-		strings.ToTitle(j.Left.Key),
-		strings.ToTitle(j.Right.Name),
-		strings.ToTitle(j.Right.Key),
+		capitalize(j.Left.Key),
+		capitalize(j.Right.Name),
+		capitalize(j.Right.Key),
 	)
 }
 
 func (j JoinStatement) Statement(name string) string {
 	cName := ""
-	if name != "" && name != j.Right.Name {
-		cName = fmt.Sprintf("AS %s ", name)
+	if name == "" {
+		name = j.Right.Name
 	}
+
+	if name != j.Right.Name {
+		cName = fmt.Sprintf("AS %s", name)
+	}
+
 	return fmt.Sprintf("%s %s %s ON %s.%s = %s.%s",
 		j.Diff, j.Right.Name, cName, name, j.Right.Key, j.Left.Name, j.Left.Key)
 }
@@ -58,25 +70,25 @@ type Optioner interface {
 }
 
 // Null Option is an empty struct that fulfills the Optioner interface, it does nothing
-type NullOption struct {
-	// column string
-}
+// type NullOption struct {
+// 	// column string
+// }
 
-func (n NullOption) request() RequestOption {
-	return nil
-}
+// func (n NullOption) request() RequestOption {
+// 	return nil
+// }
 
-func (n NullOption) column() string {
-	return ""
-}
+// func (n NullOption) column() string {
+// 	return ""
+// }
 
-func (n NullOption) required() map[string]interface{} {
-	return nil
-}
+// func (n NullOption) required() map[string]interface{} {
+// 	return nil
+// }
 
-func (n NullOption) joins() []JoinStatement {
-	return []JoinStatement{}
-}
+// func (n NullOption) joins() []JoinStatement {
+// 	return []JoinStatement{}
+// }
 
 // TimeOption is a struct that fulfills the Optioner interface, it decodes start and end time and
 // builds a query with a defined layout.
@@ -177,7 +189,6 @@ func (n NumberOption) Request() RequestOption {
 
 // UnmarshalText fulfills the interface for github.com/gorilla/schema
 func (n *NumberOption) UnmarshalText(text []byte) (err error) {
-	fmt.Println(string(text))
 	v := strings.Split(string(text), ":")
 	if len(v) >= 1 {
 		i, err := strconv.Atoi(v[0])
@@ -187,7 +198,7 @@ func (n *NumberOption) UnmarshalText(text []byte) (err error) {
 		n.Start = i
 	}
 	if len(v) >= 2 {
-		i, err := strconv.Atoi(v[0])
+		i, err := strconv.Atoi(v[1])
 		if err != nil {
 			return fmt.Errorf("failed to decode number for option %s: %s", n.Column, v[1])
 		}
@@ -236,15 +247,15 @@ func (n *NumberListOption) MarshalJSON() (b []byte, err error) {
 	return b, nil
 }
 
-func (n NumberListOption) toInterfaceSlice() map[string][]interface{} {
-	m := make(map[string][]interface{})
-	for k, v := range n.Items {
-		i := []interface{}{}
-		i = append(i, v...)
-		m[k] = i
-	}
-	return m
-}
+// func (n NumberListOption) toInterfaceSlice() map[string][]interface{} {
+// 	m := make(map[string][]interface{})
+// 	for k, v := range n.Items {
+// 		i := []interface{}{}
+// 		i = append(i, v...)
+// 		m[k] = i
+// 	}
+// 	return m
+// }
 
 // Query retreive lists' of integers that map to strings provided
 func (n NumberListOption) Request() RequestOption {
@@ -278,174 +289,7 @@ func (n NumberListOption) Merge(src NumberListOption) (v NumberListOption) {
 		Multiple: n.Multiple,
 		Items:    n.Items,
 		List: func() []string {
-			s := make([]string, len(src.List))
-			return append(s, src.List...)
+			return append([]string{}, src.List...)
 		}(),
 	}
-}
-
-type QueryType = int
-
-const (
-	UNSET QueryType = 0 + iota
-	EQUAL
-	NOT_EQUAL
-	LESS_THAN
-	GREATER_THAN
-	IN_ARRAY
-	NOT_ARRAY
-	BETWEEN
-)
-
-type Query struct {
-	query     string
-	value     interface{}
-	operation QueryType
-}
-
-type RequestOption interface {
-	Query(column string) (Query, error)
-}
-
-type RequestList struct {
-	list    []interface{}
-	not     []interface{}
-	hasNull bool
-}
-
-func (r RequestList) Query(column string) (q Query, err error) {
-	listLen := len(r.list)
-	notLen := len(r.not)
-	itemList := []interface{}{}
-	switch true {
-	case listLen == 0:
-		return q, nil
-	case listLen == 1 && notLen == 0:
-		// op EQUAL
-		// {value} == list[0]
-		q.operation = EQUAL
-		q.query = fmt.Sprintf("%s = ?", column)
-		q.value = r.list[0]
-		itemList = append(itemList, r.list[0])
-	case listLen == 0 && notLen == 1:
-		// op NOT_EQUAL
-		// {value} != not[0]
-		q.operation = NOT_EQUAL
-		q.query = fmt.Sprintf("%s = ?", column)
-		q.value = r.not[0]
-		itemList = append(itemList, r.not[0])
-	case listLen > 1 && notLen <= 0:
-		// op IN
-		// {value} IN list[]
-		q.operation = IN_ARRAY
-		q.query = fmt.Sprintf("%s IN ?", column)
-		q.value = r.list
-		itemList = r.list
-	case listLen <= 0 && notLen > 1:
-		// op NOT IN
-		// {value} NOT IN not[]
-		q.operation = NOT_ARRAY
-		q.query = fmt.Sprintf("%s NOT IN ?", column)
-		q.value = r.not
-		itemList = r.not
-	case listLen > 1 && notLen > 1 && listLen < notLen:
-		// op IN
-		// {value} IN list[]
-		q.operation = IN_ARRAY
-		q.query = fmt.Sprintf("%s IN ?", column)
-		q.value = r.list
-		itemList = r.list
-	case listLen > 1 && notLen > 1 && listLen > notLen:
-		// op NOT IN
-		// {value} NOT IN not[]
-		q.operation = NOT_ARRAY
-		q.query = fmt.Sprintf("%s NOT IN ?", column)
-		q.value = r.not
-		itemList = r.not
-	}
-
-	// find null items listed in the selected parameter options and remove from the list
-findNull:
-	for i, a := range itemList {
-		if s, ok := a.(string); a == nil || ok && (s == "NULL" || s == "null") {
-			r.hasNull = true
-			itemList = append(itemList[:i], itemList[i+1:]...)
-			// itemList[i] = itemList[len(itemList)-1]
-			// itemList = itemList[:len(itemList)-1]
-			break findNull
-		}
-	}
-
-	// add null checks appropriately to the query
-	itemListLen := len(itemList)
-	switch true {
-	case itemListLen == 0 && !r.hasNull:
-		// no values at all
-	case itemListLen == 0 && r.hasNull:
-		// only value is null
-		q.query = fmt.Sprintf(" %s IS NULL", column)
-	case itemListLen > 0 && !r.hasNull:
-		// values but no null
-	case itemListLen > 0 && r.hasNull:
-		// values and null
-		n := ""
-		if listLen > notLen {
-			n = "NOT"
-		}
-		q.query += fmt.Sprintf(" OR %s IS %s NULL", column, n)
-	}
-
-	return q, nil
-}
-
-type RequestRange struct {
-	Start     interface{}
-	End       interface{}
-	queryType QueryType
-}
-
-func (r RequestRange) Query(column string) (q Query, err error) {
-	var startNil, endNil bool
-	for i, a := range []interface{}{r.Start, r.End} {
-		t := false
-		switch v := a.(type) {
-		case string:
-			if v == "" {
-				t = true
-			}
-		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			if v == 0 {
-				t = true
-			}
-		case float32, float64:
-			if v == 0.0 {
-				t = true
-			}
-		case nil:
-			t = true
-		}
-
-		switch i {
-		case 0:
-			startNil = t
-		case 1:
-			endNil = t
-		}
-	}
-
-	if startNil && endNil {
-		return q, fmt.Errorf("nil start and end")
-	}
-
-	if endNil {
-		// return fmt.Sprintf("%s >= ?", column), r.Start, nil
-		q.operation = GREATER_THAN
-		q.query = fmt.Sprintf("%s >= ?", column)
-		q.value = r.Start
-		return q, nil
-	}
-	q.operation = BETWEEN
-	q.query = fmt.Sprintf("%s BETWEEN ? AND ?", column)
-	q.value = []interface{}{r.Start, r.End}
-	return q, nil
 }
