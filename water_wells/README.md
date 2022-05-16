@@ -6,13 +6,13 @@ This package provides a simple API for accessing published water well data from 
 [sources.tar.gz](https://github.com/cleanflo/open_data/releases/download/src-0.0.1/sources.tar.gz)
 
 - [Government of Alberta](http://groundwater.alberta.ca/WaterWells/d/#tabs_tablist_dijit_layout_ContentPane_5)
- - [Data Model](http://groundwater.alberta.ca/WaterWells/docs/Awwid%20Data%20Model.pdf)
+  - [Data Model](http://groundwater.alberta.ca/WaterWells/docs/Awwid%20Data%20Model.pdf)
 - [Government of British Columbia](https://apps.nrs.gov.bc.ca/gwells/)
- - [Licence](https://www2.gov.bc.ca/gov/content?id=A519A56BC2BF44E4A008B33FCF527F61)
+  - [Licence](https://www2.gov.bc.ca/gov/content?id=A519A56BC2BF44E4A008B33FCF527F61)
 - [Government of Ontario](https://data.ontario.ca/dataset/well-records)
- - [Licence](https://www.ontario.ca/page/open-government-licence-ontario)
+  - [Licence](https://www.ontario.ca/page/open-government-licence-ontario)
 - [Government of Nova Scotia](https://www.novascotia.ca/nse/groundwater/welldatabase.asp)
- - [User Guide](https://www.novascotia.ca/nse/groundwater/docs/UsersManual_NSWellLogsDatabase.pdf)
+  - [User Guide](https://www.novascotia.ca/nse/groundwater/docs/UsersManual_NSWellLogsDatabase.pdf)
 - [Government of Saskatchewan](https://gis.wsask.ca/Html5Viewer/index.html?viewer=WaterWells.WellsViewer/)
 
 Datasets Not Included:
@@ -61,25 +61,25 @@ The API for each endpoint can perform filtering on certain parameters, but depen
 
 ### Filter by Columns
 - Completed[start:end]
- - start - time.Time
- - end - time.Time
+  - start - time.Time
+  - end - time.Time
 - Abandoned[start:end]
- - start - time.Time
- - end - time.Time
+  - start - time.Time
+  - end - time.Time
 - Status[1,2,3..,n] - string
 - Use[1,2,3..,n] - string
 - Colour[1,2,3..,n] - string
 - Taste[1,2,3..,n] - string
 - Odour[1,2,3..,n] - string
 - Rate[start:end]
- - start - int
- - end - int
+  - start - int
+  - end - int
 - Depth[start:end]
- - start - int
- - end - int
+  - start - int
+  - end - int
 - Bedrock[start:end]
- - start - int
- - end - int
+  - start - int
+  - end - int
 
 # TODO:
  - Work on docker build process to support other databases
