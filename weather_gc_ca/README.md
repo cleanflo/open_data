@@ -3,6 +3,7 @@
 This package provides a simple API/CLI for searching the Environment Canada "Weather Station Inventory". The published data was collected in CSV format and converted to JSON for embedding in the package. The station inventory can be searched using the CLI or by using the provided `net/http.HandlerFunc` to serve the API. Once a "StationID" is found, the data can be retrieved using the provided options in the CLI or endpoint in the API, currently the data is concatonated into a single CSV file:
 
 ### Data Sources
+based on Environment and Climate Change Canada data
 [Technical Documentation](https://climate.weather.gc.ca/doc/Technical_Documentation.pdf)
 
 - [Station Inventory (Google Drive)](https://drive.google.com/file/d/1HDRnj41YBWpMioLPwAFiLlK4SK8NV72C/view?usp=sharing)
